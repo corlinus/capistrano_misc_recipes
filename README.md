@@ -1,4 +1,4 @@
-# Capistrano Misc Recipies
+# Capistrano Misc Recipes
 
 This gem provides several capistrano tasks to help to access rails application environment and log files.
 
