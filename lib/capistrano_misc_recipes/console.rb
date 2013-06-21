@@ -1,4 +1,4 @@
-# Recipes for run somoe useful command on server
+# Recipes for run somoe useful console commands on server
 
 module Capistrano
   module Console
