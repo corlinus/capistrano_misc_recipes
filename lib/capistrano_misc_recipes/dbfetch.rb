@@ -17,7 +17,7 @@ module Capistrano
         config = begin
                   YAML.load(ERB.new(database_yml).result)[rails_env]
                  rescue
-                   # TODO error report if database.yml not exists unreachable!
+                   # TODO error report if database.yml not reachable!
                  end
 
         dump_file = "/tmp/#{ capture("hostname").chomp }-#{ config['database'] }-#{ Time.now.strftime('%Y-%m-%d-%H-%M-%S') }.sql.bz2"

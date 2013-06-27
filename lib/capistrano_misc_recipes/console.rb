@@ -1,8 +1,12 @@
 # Recipes for run somoe useful console commands on server
 
+require 'capistrano_misc_recipes/bundler'
+
 module Capistrano
   module Console
+
     Configuration.instance(true).load do
+      extend ::CapistranoMiscRecipes::Bundler
 
       def execute_ssh_locally cmd=''
         hostname = find_servers_for_task(current_task).first
@@ -32,7 +36,7 @@ module Capistrano
         task :rails, roles: :app do
 
           console_command = "rails console %s" % rails_env
-          console_command = "bundle exec #{console_command}" if defined? Bundler
+          console_command = bundlify console_command
 
           execute_ssh_locally console_command
         end
@@ -40,7 +44,7 @@ module Capistrano
         desc "Open a rails db console the first app server"
         task :db, roles: :app do
           console_command = "rails dbconsole %s" % rails_env
-          console_command = "bundle exec #{console_command}" if defined? Bundler
+          console_command = bundlify console_command
 
           execute_ssh_locally console_command
         end

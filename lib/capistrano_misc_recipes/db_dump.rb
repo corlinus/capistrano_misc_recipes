@@ -38,6 +38,7 @@ module CapistranoMiscRecipes
         # TODO password
 
       else
+        # TODO handle error capistrano and rake way
         abort "Unknown command-line client for #{options['database']}"
       end
 
