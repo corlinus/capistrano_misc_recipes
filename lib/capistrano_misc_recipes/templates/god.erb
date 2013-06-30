@@ -1,0 +1,14 @@
+God.watch do |w|
+  w.name     = <%= app_name.inspect %>
+  w.start    = <%= "su -l #{ user } -c '#{ start_command }'".inspect %>
+  w.stop     = <%= "su -l #{ user } -c '#{ stop_command }'".inspect %>
+  w.pid_file = <%= passenger_pid_file.to_s.inspect %>
+
+  w.behavior(:clean_pid_file)
+  w.start_if do |start|
+    start.condition(:process_running) do |c|
+      c.interval = 10.minutes
+      c.running = false
+    end
+  end
+end

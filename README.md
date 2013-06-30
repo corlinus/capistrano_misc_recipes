@@ -109,9 +109,11 @@ end
 
 `passenger.start`, `passenger.stop` and `passenger.restart` tasks can be used.
 
-### Generate sample nginx config for application
+### Generate sample configs for god and nginx
 
-Task `cap passenger:nginx_config` prints sample nginx config and saves it in file application tmp dir
+Task `cap passenger:config:god` generates sample _god_ config and stores it in application tmp dir
+
+Task `cap passenger:config:nginx` generates sample _nginx_ config and stores it in file application tmp dir
 
 ## Contributing
 

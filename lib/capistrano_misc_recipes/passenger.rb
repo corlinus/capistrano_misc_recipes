@@ -15,9 +15,9 @@ module Capistrano
         _cset :passenger_port,        3000
         _cset :passenger_use_socket,  false
 
-
-        desc '[internal] Start passenger'
-        task :start, roles: :app do
+        # command to start passenger
+        def start_command
+          # TODO try_sudo
 
           command = []
           command << "cd #{current_path}"
@@ -37,62 +37,54 @@ module Capistrano
           command << "--pid-file #{passenger_pid_file}"
           command << "--environment #{rails_env}"
           command << "--daemonize"
-          run command.join ' '
+          command.join ' '
+        end
 
+        def stop_command
+          # TODO try_sudo
+          "cd #{current_path} && #{bundlify 'passenger'} stop --pid-file #{passenger_pid_file} ; true"
+        end
+
+        def restart_command
+          "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
+        end
+
+        desc '[internal] Start passenger'
+        task :start, roles: :app do
+          run start_command
         end
 
         desc '[internal] Stop passenger'
         task :stop, roles: :app do
-          run "cd #{current_path} && #{bundlify 'passenger'} stop --pid-file #{passenger_pid_file} ; true"
+          run stop_command
         end
 
         desc '[internal] Restart passenger'
         task :restart, roles: :app, except: { no_release: true } do
-          run "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
+          run restart_command
         end
 
-        desc 'generates nginx virtual host template file'
-        task :nginx_config do
+        namespace :config do
 
-          proxy_pass = if passenger_use_socket
-                         "http://unix:#{passenger_socket_file}"
-                       else
-                         "http://#{passenger_address}:#{passenger_port}"
-                       end
+          {
+            god: { extension: 'god' },
+            nginx: { extension: nil}
+          }.each do |key, data|
 
-          conf_file = <<CONF
+            desc "generates nginx #{key} file"
+            task key do
+              template_dir = Pathname.new(File.dirname(__FILE__)).join 'templates'
+              app_name     = [application, exists?(:stages) ? stage : nil].compact.join(?_)
+              file_name    = [app_name, data[:extension]].compact.join ?.
+              conf_file    = ERB.new(File.read(template_dir.join "#{key}.erb"), nil, '-').result binding
 
-# nginx virtual host file for
-#    application: #{application}
-#{exists?(:stages) ? "#    stage: #{stage}\n" : nil}
-server {
-    listen 80;
-    server_name #{application}
-    root #{File.join current_path, 'public'};
-    client_max_body_size 15M;
+              puts conf_file
+              # save file in application tmp dir
+              put conf_file, File.join(current_path, 'tmp', file_name).to_s
+            end
 
-    location / {
-        try_files /system/maintence.html
-          $uri $uri/index.html $uri.html
-          @passenger;
-    }
+          end
 
-    location @passenger {
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $remote_addr;
-
-        proxy_pass #{proxy_pass};
-    }
-
-    error_page 500 502 503 504 /500.html;
-    error_page 404 403 /404.html;
-}
-
-CONF
-
-          puts conf_file
-          # save file in application tmp dir
-          put conf_file, Pathname.new(current_path).join('tmp', [application, exists?(:stages) ? stage : nil].compact.join(?_)).to_s
         end
 
       end

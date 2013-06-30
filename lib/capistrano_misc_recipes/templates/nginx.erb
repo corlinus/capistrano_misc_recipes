@@ -1,0 +1,32 @@
+# nginx virtual host file for
+#    application: <%= application %>
+<% if exists? :stages -%>
+#    stage: <%#= stage %>
+<% end -%>
+#
+
+server {
+    listen 80;
+    server_name <%= app_name %>;
+    root <%= File.join current_path, 'public' %>;
+    client_max_body_size 15M;
+
+    location / {
+        try_files /system/maintence.html
+          $uri $uri/index.html $uri.html
+          @passenger;
+    }
+
+    location @passenger {
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+<% if passenger_use_socket -%>
+        proxy_pass "http://unix:<%= passenger_socket_file %>";
+<% else -%>
+        proxy_pass "http://<% passenger_address %>:<% passenger_port %>";
+<% end -%>
+    }
+
+    error_page 500 502 503 504 /500.html;
+    error_page 404 403 /404.html;
+}
