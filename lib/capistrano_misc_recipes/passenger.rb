@@ -8,12 +8,14 @@ module Capistrano
       namespace :passenger do
         extend ::CapistranoMiscRecipes::Bundler
 
-        _cset :passenger_pids_dir,    Pathname.new(current_path).join('tmp', 'pids')
-        _cset :passenger_pid_file,    passenger_pids_dir.join("#{rails_env}.pid")
-        _cset :passenger_socket_file, passenger_pids_dir.join("#{rails_env}.sock")
-        _cset :passenger_address,     '127.0.0.1'
-        _cset :passenger_port,        3000
-        _cset :passenger_use_socket,  false
+        on :load do
+          _cset :passenger_pids_dir,    Pathname.new(current_path).join('tmp', 'pids')
+          _cset :passenger_pid_file,    passenger_pids_dir.join("#{rails_env}.pid")
+          _cset :passenger_socket_file, passenger_pids_dir.join("#{rails_env}.sock")
+          _cset :passenger_address,     '127.0.0.1'
+          _cset :passenger_port,        3000
+          _cset :passenger_use_socket,  false
+        end
 
         # command to start passenger
         def start_command
